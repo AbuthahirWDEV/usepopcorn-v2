@@ -19,7 +19,7 @@ root.render(
   <React.StrictMode>
     <App />
 
-    <Something maxRating={5} />
-    <Test />
+    {/* <Something maxRating={5} />
+    <Test /> */}
   </React.StrictMode>
 );

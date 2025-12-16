@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const tempMovieData = [
   {
@@ -47,12 +47,45 @@ const tempWatchedData = [
   },
 ];
 
+const key = "5e4ec070";
+const query = "interstellar";
 const average = (arr) =>
-  arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
+  arr.reduce((acc, cur, i, arr) => acc + cur / arr?.length, 0);
 
 export default function App() {
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error , setError] = useState("")
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch(
+          `https://www.omdbapi.com/?i=tt3896198&apikey=${key}&s=${query}`
+        );
+
+        if (!res.ok) {
+          throw new Error("Somthing wrong...");
+        }
+        const data = await res.json();
+        setMovies(data.Search);
+      } catch (err) {
+        console.error("Failed to fetch movies:", err);
+        setError(err.message)
+      } finally {
+        setIsLoading(false);
+        setError("")
+      }
+    };
+
+    fetchMovies();
+  }, []);
+
+  // fetch(`https://www.omdbapi.com/?apikey=5e4ec070&s=interstellar`)
+  //   .then((res) => res.json())
+  //   .then((data) => console.log(data));
   return (
     <>
       {/* Component composition using children prop*/}
@@ -64,7 +97,9 @@ export default function App() {
 
       <Main>
         <Box>
-          <MovieList movies={movies} />
+          {isLoading && <p>Loading...</p>}
+          {!isLoading && !error && <MovieList movies={movies} />}
+          {error && <p className="error">Error....</p>}
         </Box>
 
         <Box>
@@ -105,7 +140,7 @@ function Search() {
 function NumResults({ movieCount }) {
   return (
     <p className="num-results">
-      Found <strong>{movieCount.length}</strong> results
+      Found <strong>{movieCount?.length}</strong> results
     </p>
   );
 }
@@ -133,7 +168,7 @@ function MovieList({ movies }) {
 
 function Movie({ movie }) {
   return (
-    <li>
+    <li key={movie.imdbID}>
       <img src={movie.Poster} alt={`${movie.Title} poster`} />
       <h3>{movie.Title}</h3>
       <div>
@@ -204,7 +239,7 @@ function WatchSummary({ watched }) {
       <div>
         <p>
           <span>#️⃣</span>
-          <span>{watched.length} movies</span>
+          <span>{watched?.length} movies</span>
         </p>
         <p>
           <span>⭐️</span>
