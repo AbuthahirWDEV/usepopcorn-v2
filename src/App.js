@@ -110,6 +110,7 @@ export default function App() {
       setError("");
       return;
     }
+    handleCloseMovie()
     fetchMovies();
   }, [query]);
 
@@ -313,6 +314,30 @@ function MovieDetails({ selectedId, onMovieClose, onAddWatched, watched }) {
     onAddWatched(newWatchedMovie);
     onMovieClose();
   }
+
+  // adding event listener in effect we must remove using cleanup other wise
+  // in each render it will assign new listeners
+  // each time when we close movie comp re-renders and open new one comp mounts
+  // listeners are outside react u must remove
+  useEffect(() => {
+    // we must write this as a seperate function
+    // listener will expect a same refernce not a new function
+    // without writing function directly wont work
+    function callback(e) {
+      if (e.code === "Escape") {
+        onMovieClose();
+      }
+      // console.log("closing...");
+    }
+
+    document.addEventListener("keydown", callback);
+
+    // cleanup
+    return () => {
+      document.removeEventListener("keydown", callback);
+    };
+  }, [onMovieClose]);
+
   useEffect(() => {
     const fetchMovieDetails = async () => {
       setIsLoading(true);
@@ -335,9 +360,9 @@ function MovieDetails({ selectedId, onMovieClose, onAddWatched, watched }) {
     if (!title) return;
     document.title = `Movie ${title}`;
 
-    return ()=> {
-      document.title="usePopCorn"
-    }
+    return () => {
+      document.title = "usePopCorn";
+    };
   }, [title]);
   return (
     <div className="details">
